@@ -227,9 +227,9 @@ export type UpsertFunnelPage = Prisma.FunnelPageCreateWithoutFunnelInput
 //     Customer: Contact | null;
 // };
 
-// export type LaneDetails = Lane & {
-//     Tickets: TicketAndTags[];
-// };
+export type LaneDetails = Lane & {
+    Tickets: TicketAndTags[];
+};
 
 // export type PipelineDetailsWithLanesCardsTagsTickets = Prisma.PromiseReturnType<typeof getPipelineDetails>;
 
