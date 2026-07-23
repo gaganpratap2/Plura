@@ -1,8 +1,9 @@
 "use client";
 import { useToast } from "@/components/ui/use-toast";
 import { changeUserPermission, getAuthUserDetails, getUserPermissions, saveActivityLogsNotification, updateUser } from "@/lib/queries";
-import { AuthUSerWithAgencySigebarOptionsSubAccounts, UserWithPermissionsAndSubAccounts } from "@/lib/types";
+// import { AuthUserWithAgencySigebarOptionsSubAccounts, UserWithPermissionsAndSubAccounts } from "@/lib/types";
 import { useModal } from "@/providers/modal-provider";
+const [authUserData, setAuthUserData] = useState<AuthUserWithAgencySigebarOptionsSubAccounts | null>(null);
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubAccount, User } from "@prisma/client";
 import { useRouter } from "next/navigation";
