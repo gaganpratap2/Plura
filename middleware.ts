@@ -1,49 +1,149 @@
-import { authMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// This example protects all routes including api/trpc routes
-// Please edit this to allow other routes to be public as needed.
-// See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your Middleware
-export default authMiddleware({
-    publicRoutes:  [
-        "/site",
-        "/api/uploadthing",
-        "/pricing",
-        "/features",
-        "/documentation",
-        "/documentation/(.*)", // covers /documentation/getting-started, /documentation/crm, etc.
-    ],
-    async beforeAuth(auth, req) {},
-    async afterAuth(auth, req) {
-        //rewrite for domains
-        const url = req.nextUrl;
-        const searchParams = url.searchParams.toString();
-        let hostname = req.headers;
+const isPublicRoute = createRouteMatcher([
+  "/site(.*)",
+  "/api/uploadthing(.*)",
+  "/pricing(.*)",
+  "/features(.*)",
+  "/documentation(.*)",
+]);
 
-        const pathWithSearchParams = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;
+export default clerkMiddleware(async (auth, req) => {
+//   if (!isPublicRoute(req)) {
+//     await auth.protect();
+//   }
 
-        //if subdomain exists
-        const customSubDomain = hostname.get("host")?.split(`${process.env.NEXT_PUBLIC_DOMAIN}`).filter(Boolean)[0];
+if (!isPublicRoute(req)) {
+  const { userId } = auth();
 
-        if (customSubDomain) {
-            return NextResponse.rewrite(new URL(`/${customSubDomain}${pathWithSearchParams}`, req.url));
-        }
+  if (!userId) {
+    return NextResponse.redirect(new URL("/agency/sign-in", req.url));
+  }
+}
 
-        if (url.pathname === "/sign-in" || url.pathname === "/sign-up") {
-            return NextResponse.redirect(new URL(`/agency/sign-in`, req.url));
-        }
 
-        if (url.pathname === "/" || (url.pathname === "/site" && url.host === process.env.NEXT_PUBLIC_DOMAIN)) {
-            return NextResponse.rewrite(new URL("/site", req.url));
-        }
+  const url = req.nextUrl;
+  const searchParams = url.searchParams.toString();
+  const pathWithSearchParams = `${url.pathname}${
+    searchParams ? `?${searchParams}` : ""
+  }`;
 
-        if (url.pathname.startsWith("/agency") || url.pathname.startsWith("/subaccount")) {
-            return NextResponse.rewrite(new URL(`${pathWithSearchParams}`, req.url));
-        }
-    },
+  const host = req.headers.get("host") ?? "";
+  const domain = process.env.NEXT_PUBLIC_DOMAIN;
+
+  let customSubDomain: string | undefined;
+
+  if (domain && host.endsWith(domain)) {
+    const subdomain = host.replace(`.${domain}`, "");
+    if (subdomain !== host && subdomain !== "www") {
+      customSubDomain = subdomain;
+    }
+  }
+
+  if (customSubDomain) {
+    return NextResponse.rewrite(
+      new URL(`/${customSubDomain}${pathWithSearchParams}`, req.url)
+    );
+  }
+
+  if (url.pathname === "/sign-in" || url.pathname === "/sign-up") {
+    return NextResponse.redirect(new URL("/agency/sign-in", req.url));
+  }
+
+  if (
+    url.pathname === "/" ||
+    (url.pathname === "/site" && host === domain)
+  ) {
+    return NextResponse.rewrite(new URL("/site", req.url));
+  }
+
+  if (
+    url.pathname.startsWith("/agency") ||
+    url.pathname.startsWith("/subaccount")
+  ) {
+    return NextResponse.rewrite(
+      new URL(pathWithSearchParams, req.url)
+    );
+  }
+
+  return NextResponse.next();
 });
 
 export const config = {
-    matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import { authMiddleware } from "@clerk/nextjs/server";
+// import { NextResponse } from "next/server";
+
+// // This example protects all routes including api/trpc routes
+// // Please edit this to allow other routes to be public as needed.
+// // See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your Middleware
+// export default authMiddleware({
+//     publicRoutes:  [
+//         "/site",
+//         "/api/uploadthing",
+//         "/pricing",
+//         "/features",
+//         "/documentation",
+//         "/documentation/(.*)", // covers /documentation/getting-started, /documentation/crm, etc.
+//     ],
+//     async beforeAuth(auth, req) {},
+//     async afterAuth(auth, req) {
+//         //rewrite for domains
+//         const url = req.nextUrl;
+//         const searchParams = url.searchParams.toString();
+//         let hostname = req.headers;
+
+//         const pathWithSearchParams = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;
+
+//         //if subdomain exists
+//         const customSubDomain = hostname.get("host")?.split(`${process.env.NEXT_PUBLIC_DOMAIN}`).filter(Boolean)[0];
+
+//         if (customSubDomain) {
+//             return NextResponse.rewrite(new URL(`/${customSubDomain}${pathWithSearchParams}`, req.url));
+//         }
+
+//         if (url.pathname === "/sign-in" || url.pathname === "/sign-up") {
+//             return NextResponse.redirect(new URL(`/agency/sign-in`, req.url));
+//         }
+
+//         if (url.pathname === "/" || (url.pathname === "/site" && url.host === process.env.NEXT_PUBLIC_DOMAIN)) {
+//             return NextResponse.rewrite(new URL("/site", req.url));
+//         }
+
+//         if (url.pathname.startsWith("/agency") || url.pathname.startsWith("/subaccount")) {
+//             return NextResponse.rewrite(new URL(`${pathWithSearchParams}`, req.url));
+//         }
+//     },
+// });
+
+// export const config = {
+//     matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+// };
 

@@ -76,9 +76,6 @@ export type TicketAndTags = Ticket & {
   Customer: Contact | null
 }
 
-export type LaneDetail = Lane & {
-  Tickets: TicketAndTags[]
-}
 
 export const CreatePipelineFormSchema = z.object({
   name: z.string().min(1),
@@ -119,6 +116,10 @@ export const ContactUserFormSchema = z.object({
   name: z.string().min(1, 'Required'),
   email: z.string().email(),
 })
+
+export type LaneDetails = Lane & {
+    Tickets: TicketAndTags[];
+};
 
 export type Address = {
   city: string
@@ -227,9 +228,7 @@ export type UpsertFunnelPage = Prisma.FunnelPageCreateWithoutFunnelInput
 //     Customer: Contact | null;
 // };
 
-export type LaneDetails = Lane & {
-    Tickets: TicketAndTags[];
-};
+
 
 // export type PipelineDetailsWithLanesCardsTagsTickets = Prisma.PromiseReturnType<typeof getPipelineDetails>;
 
