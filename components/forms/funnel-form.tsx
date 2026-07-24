@@ -1,5 +1,5 @@
 "use client";
-import { CreateFunnelFormSchema } from "@/lib/types";
+import { CreateFunnelFormSchema } from "@/lib/schemas";
 import { useModal } from "@/providers/modal-provider";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Funnel } from "@prisma/client";

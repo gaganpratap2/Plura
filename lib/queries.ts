@@ -1,4 +1,5 @@
 "use server";
+import 'server-only'
 
 import type { User as AuthUser } from "@clerk/nextjs/server";
 import { clerkClient, currentUser } from "@clerk/nextjs/server";
@@ -727,6 +728,20 @@ export const deletePipeline = async (pipelineId: string) => {
 
     return response;
 }; 
+
+// lib/queries.ts
+export const getUsersWithAgencySubAccountPermissionsSidebarOptions = async (
+  agencyId: string
+) => {
+  return await db.user.findFirst({
+    where: { Agency: { id: agencyId } },
+    include: {
+      Agency: { include: { SubAccount: true } },
+      Permissions: { include: { SubAccount: true } },
+    },
+  })
+}
+
 
 export const getLanesWithTicketAndTags = async (pipelineId: string) => {
     const response = await db.lane.findMany({

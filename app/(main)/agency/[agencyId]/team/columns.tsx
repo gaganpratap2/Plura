@@ -16,6 +16,7 @@ import { Copy, Edit, MoreHorizontal, Trash } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { Permissions } from "@prisma/client";
 
 export const columns: ColumnDef<UsersWithAgencySubAccountPermissionsSidebarOptions>[] = [
     {
@@ -53,7 +54,7 @@ export const columns: ColumnDef<UsersWithAgencySubAccountPermissionsSidebarOptio
         header: "Owned Accounts",
         cell: ({ row }) => {
             const isAgencyOwner = row.getValue("role") === "AGENCY_OWNER";
-            const ownedAccounts = row.original?.Permissions.filter((per) => per.access);
+            const ownedAccounts = row.original?.Permissions.filter((per : Permissions) => per.access);
 
             if (isAgencyOwner)
                 return (
