@@ -1,3 +1,4 @@
+
 import BlurPage from '@/components/global/blur-page'
 import CircleProgress from '@/components/global/circle-progress'
 import PipelineValue from '@/components/global/pipeline-value'
@@ -49,11 +50,11 @@ const SubaccountPageId = async ({ params, searchParams }: Props) => {
     },
   })
 
+  if (!subaccountDetails) return null
+
   const currentYear = new Date().getFullYear()
   const startDate = new Date(`${currentYear}-01-01T00:00:00Z`).getTime() / 1000
   const endDate = new Date(`${currentYear}-12-31T23:59:59Z`).getTime() / 1000
-
-  if (!subaccountDetails) return
 
   if (subaccountDetails.connectAccountId) {
     const response = await stripe.accounts.retrieve({
@@ -121,28 +122,33 @@ const SubaccountPageId = async ({ params, searchParams }: Props) => {
     ),
   }))
 
+  if (!subaccountDetails.connectAccountId) {
+    return (
+      <BlurPage>
+        <div className="flex h-[80vh] items-center justify-center">
+          <Card className="max-w-md">
+            <CardHeader>
+              <CardTitle>Connect Your Stripe</CardTitle>
+              <CardDescription>
+                Connect your Stripe account before accessing the dashboard.
+              </CardDescription>
+
+              <Link
+                href={`/subaccount/${subaccountDetails.id}/launchpad`}
+                className="mt-4 rounded-md bg-primary px-4 py-2 text-white"
+              >
+                Connect Stripe
+              </Link>
+            </CardHeader>
+          </Card>
+        </div>
+      </BlurPage>
+    )
+  }
+
   return (
     <BlurPage>
       <div className="relative h-full">
-        {!subaccountDetails.connectAccountId && (
-          <div className="absolute -top-10 -left-10 right-0 bottom-0 z-30 flex items-center justify-center backdrop-blur-md bg-background/50">
-            <Card>
-              <CardHeader>
-                <CardTitle>Connect Your Stripe</CardTitle>
-                <CardDescription>
-                  You need to connect your stripe account to see metrics
-                </CardDescription>
-                <Link
-                  href={`/subaccount/${subaccountDetails.id}/launchpad`}
-                  className="p-2 w-fit bg-secondary text-white rounded-md flex items-center gap-2"
-                >
-                  <ClipboardIcon />
-                  Launch Pad
-                </Link>
-              </CardHeader>
-            </Card>
-          </div>
-        )}
         <div className="flex flex-col gap-4 pb-6">
           <div className="flex gap-4 flex-col xl:!flex-row">
             <Card className="flex-1 relative">
@@ -300,3 +306,4 @@ const SubaccountPageId = async ({ params, searchParams }: Props) => {
 }
 
 export default SubaccountPageId
+

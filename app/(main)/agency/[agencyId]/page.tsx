@@ -90,10 +90,14 @@ const Page = async ({
       .reduce((total, session) => total + (session.amount_total || 0), 0)
       .toFixed(2)
 
-    closingRate = +(
-      (totalClosedSessions.length / checkoutSessions.data.length) *
-      100
-    ).toFixed(2)
+    closingRate =
+  checkoutSessions.data.length > 0
+    ? +(
+        (totalClosedSessions.length / checkoutSessions.data.length) *
+        100
+      ).toFixed(2)
+    : 0
+
   }
 
   return (
@@ -164,32 +168,37 @@ const Page = async ({
             <Contact2 className="absolute right-4 top-4 text-muted-foreground" />
           </Card>
           <Card className="flex-1 relative">
-            <CardHeader>
-              <CardTitle>Agency Goal</CardTitle>
-              <CardDescription>
-                <p className="mt-2">
-                  Reflects the number of sub accounts you want to own and
-                  manage.
-                </p>
-              </CardDescription>
-            </CardHeader>
-            <CardFooter>
-              <div className="flex flex-col w-full">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">
-                    Current: {subaccounts.length}
-                  </span>
-                  <span className="text-muted-foreground text-sm">
-                    Goal: {agencyDetails.goal}
-                  </span>
-                </div>
-                <Progress
-                  value={(subaccounts.length / agencyDetails.goal) * 100}
-                />
-              </div>
-            </CardFooter>
-            <Goal className="absolute right-4 top-4 text-muted-foreground" />
-          </Card>
+  <CardHeader>
+    <CardTitle>Agency Goal</CardTitle>
+    <CardDescription className="mt-2">
+      Reflects the number of sub accounts you want to own and manage.
+    </CardDescription>
+  </CardHeader>
+
+  <CardFooter>
+    <div className="flex flex-col w-full">
+      <div className="flex justify-between items-center">
+        <span className="text-muted-foreground text-sm">
+          Current: {subaccounts.length}
+        </span>
+        <span className="text-muted-foreground text-sm">
+          Goal: {agencyDetails.goal}
+        </span>
+      </div>
+
+      <Progress
+        value={
+          agencyDetails.goal > 0
+            ? (subaccounts.length / agencyDetails.goal) * 100
+            : 0
+        }
+      />
+    </div>
+  </CardFooter>
+
+  <Goal className="absolute right-4 top-4 text-muted-foreground" />
+</Card>
+
         </div>
         <div className="flex gap-4 xl:!flex-row flex-col">
           <Card className="p-4 flex-1">
@@ -228,7 +237,7 @@ const Page = async ({
                       </div>
                     )}
                     {totalClosedSessions && (
-                      <div className="felx flex-col">
+                      <div className="flex flex-col">
                         Won Carts
                         <div className="flex gap-2">
                           <ShoppingCart className="text-emerald-700" />
