@@ -101,7 +101,7 @@ const Page = async ({
   }
 
   return (
-    <div className="relative h-full">
+     <div className="relative h-full">
       {!agencyDetails.connectAccountId && (
         <div className="absolute -top-10 -left-10 right-0 bottom-0 z-30 flex items-center justify-center backdrop-blur-md bg-background/50">
           <Card>
