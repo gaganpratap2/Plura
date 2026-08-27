@@ -20,19 +20,17 @@ export const subscriptionCreated = async (subscription: Stripe.Subscription, cus
             throw new Error("Could not find and agency to upsert the subscription");
         }
 
+        const priceId = subscription.items.data[0]?.price.id ?? "";
+
         const data = {
             active: subscription.status === "active",
             agencyId: agency.id,
             customerId,
             currentPeriodEndDate: new Date(subscription.current_period_end * 1000),
-            //@ts-ignore
-            priceId: subscription.plan.id,
+            priceId,
             subscritiptionId: subscription.id,
-            //@ts-ignore
-            plan: subscription.plan.id as keyof typeof Plan,
+            plan: priceId as keyof typeof Plan,
         };
-
-        console.log({ ...subscription });
 
         const res = await db.subscription.upsert({
             where: {
@@ -41,8 +39,6 @@ export const subscriptionCreated = async (subscription: Stripe.Subscription, cus
             create: data,
             update: data,
         });
-
-        console.log(`🟢 Created Subscription for ${subscription.id}`);
     } catch (error) {
         console.log("🔴 Error from Create action", error);
     }

@@ -1,4 +1,5 @@
 import { stripe } from "@/lib/stripe";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
@@ -25,6 +26,11 @@ export type StripeCustomerType = {
 export type PricesList = Stripe.ApiList<Stripe.Price>;
 
 export async function POST(req: Request) {
+    const { userId } = await auth();
+    if (!userId) {
+        return new NextResponse("Unauthorized", { status: 401 });
+    }
+
     const { address, email, name, shipping }: StripeCustomerType = await req.json();
 
     if (!email || !address || !name || !shipping) {

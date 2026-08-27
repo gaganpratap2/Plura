@@ -221,55 +221,6 @@ export const defaultStyles: React.CSSProperties = {
 
 import { Contact2, DraftingCompass, Mail, CalendarDays, BarChart3, Workflow } from "lucide-react";
 
-export const pricingCard = [
-    {
-        title: "Starter",
-        description: "Perfect for trying out your first CRM pipeline",
-        price: "Free",
-        duration: "",
-        highlight: "Key features",
-        features: [
-            "Up to 100 contacts",
-            "1 sales pipeline",
-            "Basic deal tracking",
-            "Email support",
-        ],
-        priceId: "",
-    },
-    {
-        title: "Unlimited Saas",
-        description: "The ultimate agency kit with everything unlocked",
-        price: "$199",
-        duration: "month",
-        highlight: "Key features",
-        features: [
-            "Unlimited contacts & pipelines",
-            "Sales automation & workflows",
-            "Email & SMS campaigns",
-            "Custom sales funnels",
-            "Advanced analytics dashboard",
-            "Team roles & permissions",
-            "Priority support",
-        ],
-        priceId: "price_unlimited",
-    },
-    {
-        title: "Basic",
-        description: "For small teams getting serious about sales",
-        price: "$49",
-        duration: "month",
-        highlight: "Key features",
-        features: [
-            "Up to 5,000 contacts",
-            "5 sales pipelines",
-            "Deal & task automation",
-            "Calendar & scheduling",
-            "Email support",
-        ],
-        priceId: "price_basic",
-    },
-];
-
 // New: CRM feature list for the Features page
 export const crmFeatures = [
     {

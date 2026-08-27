@@ -32,12 +32,69 @@ export const getUser = async (id: string) => {
     return user;
 };
 
+export const getAuthContext = async () => {
+    const user = await currentUser();
+    if (!user) return null;
+
+    const dbUser = await db.user.findUnique({
+        where: { email: user.emailAddresses[0].emailAddress },
+    });
+    if (!dbUser) return null;
+
+    return {
+        authUser: user,
+        dbUser,
+        isOwnerOrAdmin:
+            dbUser.role === "AGENCY_OWNER" || dbUser.role === "AGENCY_ADMIN",
+    };
+};
+
+export const requireSubAccountAccess = async (subAccountId: string) => {
+    const ctx = await getAuthContext();
+    if (!ctx) throw new Error("Unauthorized");
+
+    const subAccount = await db.subAccount.findUnique({
+        where: { id: subAccountId },
+        select: { agencyId: true },
+    });
+    if (!subAccount) throw new Error("Subaccount not found");
+
+    if (ctx.dbUser.agencyId === subAccount.agencyId && ctx.isOwnerOrAdmin) {
+        return ctx;
+    }
+
+    const hasAccess = await db.permissions.findFirst({
+        where: {
+            subAccountId,
+            email: ctx.dbUser.email,
+        },
+    });
+
+    if (!hasAccess) throw new Error("Unauthorized");
+    return ctx;
+};
+
 export const deleteUser = async (userId: string) => {
+    const ctx = await getAuthContext();
+    if (!ctx) throw new Error("Unauthorized");
+
+    const target = await db.user.findUnique({ where: { id: userId } });
+    if (!target) throw new Error("User not found");
+
+    const sameAgency =
+        target.agencyId === ctx.dbUser.agencyId ||
+        ctx.dbUser.role === "AGENCY_OWNER" ||
+        ctx.dbUser.role === "AGENCY_ADMIN";
+    const isSelf = target.id === ctx.authUser.id;
+
+    if (!sameAgency && !isSelf) throw new Error("Unauthorized");
+    if (!isSelf && !ctx.isOwnerOrAdmin) throw new Error("Unauthorized");
+
     await clerkClient.users.updateUserMetadata(userId, {
         privateMetadata: {
             role: undefined,
         },
-    });
+    }).catch(() => {});
     const deletedUser = await db.user.delete({ where: { id: userId } });
     return deletedUser;
 };
@@ -243,6 +300,32 @@ export const saveActivityLogsNotification = async ({
 
 
 export const updateUser = async (user: Partial<User>) => {
+    const ctx = await getAuthContext();
+    if (!ctx) throw new Error("Unauthorized");
+
+    const target = await db.user.findUnique({
+        where: { email: user.email },
+    });
+    if (!target) throw new Error("User not found");
+
+    const isSelf = target.id === ctx.authUser.id;
+    const inSameAgency =
+        !!target.agencyId && target.agencyId === ctx.dbUser.agencyId;
+
+    if (!isSelf && !(ctx.isOwnerOrAdmin && inSameAgency)) {
+        throw new Error("Unauthorized");
+    }
+
+    if (
+        !isSelf &&
+        user.role &&
+        user.role !== "SUBACCOUNT_USER" &&
+        user.role !== ctx.dbUser.role &&
+        ctx.dbUser.role !== "AGENCY_OWNER"
+    ) {
+        throw new Error("Only an agency owner can change roles");
+    }
+
     const response = await db.user.update({
         where: {
             email: user.email,
@@ -253,7 +336,7 @@ export const updateUser = async (user: Partial<User>) => {
     });
     await clerkClient.users.updateUserMetadata(response.id, {
         publicMetadata: {
-            role: user.role || "SUBACCOUNT_USER",
+            role: user.role || ctx.dbUser.role || "SUBACCOUNT_USER",
         },
     });
 
@@ -262,6 +345,16 @@ export const updateUser = async (user: Partial<User>) => {
 
 export const changeUserPermission = async (permissionId: string, userEmail: string, subAccountId: string, permission: boolean) => {
     try {
+        const ctx = await getAuthContext();
+        if (!ctx || !ctx.isOwnerOrAdmin) throw new Error("Unauthorized");
+
+        const subAccount = await db.subAccount.findUnique({
+            where: { id: subAccountId },
+        });
+        if (!subAccount || subAccount.agencyId !== ctx.dbUser.agencyId) {
+            throw new Error("Unauthorized");
+        }
+
         const response = await db.permissions.upsert({
             where: {
                 id: permissionId,
@@ -285,9 +378,7 @@ export const createTeamUser = async (user: User) => {
     if (user.role === "AGENCY_OWNER") return null;
     const response = await db.user.create({ data: { ...user } });
     return response;
-};
-
-export const verifyAndAcceptInvitation = async () => {
+};export const verifyAndAcceptInvitation = async () => {
     const user = await currentUser();
 
     if (!user) {
@@ -356,6 +447,10 @@ export const verifyAndAcceptInvitation = async () => {
 };
 
 export const updateAgencyDetails = async (agencyId: string, agencyDetails: Partial<Agency>) => {
+    const ctx = await getAuthContext();
+    if (!ctx || !ctx.isOwnerOrAdmin || ctx.dbUser.agencyId !== agencyId) {
+        throw new Error("Unauthorized");
+    }
     const response = await db.agency.update({
         where: { id: agencyId },
         data: { ...agencyDetails },
@@ -374,6 +469,10 @@ export const getAgencyDetails = async (agencyId: string) => {
 };
 
 export const deleteAgency = async (agencyId: string) => {
+    const ctx = await getAuthContext();
+    if (!ctx || ctx.dbUser.role !== "AGENCY_OWNER" || ctx.dbUser.agencyId !== agencyId) {
+        throw new Error("Unauthorized");
+    }
     const response = await db.agency.delete({
         where: {
             id: agencyId,
@@ -411,6 +510,18 @@ export const initUser = async (newUser: Partial<User>) => {
 
 export const upsertAgency = async (agency: Agency, price?: Plan) => {
     if (!agency.companyEmail) return null;
+
+    const ctx = await getAuthContext();
+    if (!ctx) throw new Error("Unauthorized");
+
+    const existing = await db.agency.findUnique({
+        where: { id: agency.id },
+        select: { id: true },
+    });
+
+    if (existing && (!ctx.isOwnerOrAdmin || ctx.dbUser.agencyId !== agency.id)) {
+        throw new Error("Unauthorized");
+    }
 
     try {
         const agencyDetails = await db.agency.upsert({
@@ -490,6 +601,16 @@ export const getNotificationAndUser = async (agencyId: string) => {
 export const upsertSubAccount = async (subAccount: SubAccount) => {
     if (!subAccount.companyEmail) return null;
 
+    const ctx = await getAuthContext();
+    if (
+        !ctx ||
+        !ctx.isOwnerOrAdmin ||
+        !subAccount.agencyId ||
+        ctx.dbUser.agencyId !== subAccount.agencyId
+    ) {
+        throw new Error("Unauthorized");
+    }
+
     const agencyOwner = await db.user.findFirst({
         where: {
             Agency: {
@@ -510,10 +631,6 @@ export const upsertSubAccount = async (subAccount: SubAccount) => {
                 create: {
                     access: true,
                     email: agencyOwner.email,
-                    id: permissionId,
-                },
-                connect: {
-                    subAccountId: subAccount.id,
                     id: permissionId,
                 },
             },
@@ -613,6 +730,7 @@ export const getSubAccountDetails = async (subaccountId: string) => {
 }
 
 export const deleteSubAccount = async (subaccountId: string) => {
+    await requireSubAccountAccess(subaccountId);
     const response = await db.subAccount.delete({
         where: {
             id: subaccountId,
@@ -623,6 +741,10 @@ export const deleteSubAccount = async (subaccountId: string) => {
 };
 
 export const sendInvitation = async (role: Role, email: string, agencyId: string) => {
+    const ctx = await getAuthContext();
+    if (!ctx || !ctx.isOwnerOrAdmin || ctx.dbUser.agencyId !== agencyId) {
+        throw new Error("Unauthorized");
+    }
     const response = await db.invitation.create({
         data: {
             email,
@@ -673,6 +795,7 @@ export const getMedia = async (subaccountId: string) => {
 
 
 export const createMedia = async (subaccountId: string, mediaFile: CreateMediaType) => {
+  await requireSubAccountAccess(subaccountId)
   const existing = await db.media.findUnique({ where: { link: mediaFile.link } })
   if (existing) return existing // or throw a friendly "already uploaded" error
 
@@ -682,6 +805,9 @@ export const createMedia = async (subaccountId: string, mediaFile: CreateMediaTy
 }
 
 export const deleteMedia = async (mediaId: string) => {
+    const target = await db.media.findUnique({ where: { id: mediaId } });
+    if (!target) throw new Error("Media not found");
+    await requireSubAccountAccess(target.subAccountId);
     const response = await db.media.delete({
         where: {
             id: mediaId,
@@ -720,6 +846,7 @@ export const deletePipeline = async (pipelineId: string) => {
         return null;
     }
 
+    await requireSubAccountAccess(existing.subAccountId);
     const response = await db.pipeline.delete({
         where: {
             id: pipelineId,
@@ -769,6 +896,8 @@ export const getLanesWithTicketAndTags = async (pipelineId: string) => {
 };
 
 export const upsertPipeline = async (pipeline: CreatePipeLineType) => {
+    if (!pipeline.subAccountId) throw new Error("Subaccount required");
+    await requireSubAccountAccess(pipeline.subAccountId);
     const response = await db.pipeline.upsert({
         where: {
             id: pipeline.id || v4(),
@@ -793,9 +922,10 @@ export const getTicketsWithTags = async (pipelineId: string) => {
 };
 
 export const upsertFunnel = async (subaccountId: string, funnel: z.infer<typeof CreateFunnelFormSchema> & { liveProducts: string }, funnelId: string) => {
+    await requireSubAccountAccess(subaccountId);
     const response = await db.funnel.upsert({
         where: {
-            id: funnelId,
+            id: funnelId || v4(),
         },
         update: funnel,
         create: {
@@ -809,6 +939,12 @@ export const upsertFunnel = async (subaccountId: string, funnel: z.infer<typeof 
 };
 
 export const upsertLane = async (lane: Prisma.LaneUncheckedCreateInput) => {
+    const pipeline = await db.pipeline.findUnique({
+        where: { id: lane.pipelineId },
+    });
+    if (!pipeline) throw new Error("Pipeline not found");
+    await requireSubAccountAccess(pipeline.subAccountId);
+
     let order: number;
 
     if (!lane.order) {
@@ -837,6 +973,13 @@ export const upsertLane = async (lane: Prisma.LaneUncheckedCreateInput) => {
 };
 
 export const deleteLane = async (laneId: string) => {
+    const lane = await db.lane.findUnique({ where: { id: laneId } });
+    if (!lane) throw new Error("Lane not found");
+    const pipeline = await db.pipeline.findUnique({
+        where: { id: lane.pipelineId },
+    });
+    if (!pipeline) throw new Error("Pipeline not found");
+    await requireSubAccountAccess(pipeline.subAccountId);
     const response = await db.lane.delete({
         where: {
             id: laneId,
@@ -847,6 +990,15 @@ export const deleteLane = async (laneId: string) => {
 
 export const updateLanesOrder = async (lanes: Lane[]) => {
     try {
+        const first = await db.lane.findUnique({
+            where: { id: lanes[0]?.id },
+        });
+        if (first) {
+            const pipeline = await db.pipeline.findUnique({
+                where: { id: first.pipelineId },
+            });
+            if (pipeline) await requireSubAccountAccess(pipeline.subAccountId);
+        }
         const updateTrans = lanes.map((lane) =>
             db.lane.update({
                 where: { id: lane.id },
@@ -863,6 +1015,22 @@ export const updateLanesOrder = async (lanes: Lane[]) => {
 
 export const updateTicketsOrder = async (tickets: Ticket[]) => {
     try {
+        const firstTicket = await db.ticket.findUnique({
+            where: { id: tickets[0]?.id },
+        });
+        if (firstTicket) {
+            const lane = await db.lane.findUnique({
+                where: { id: firstTicket.laneId },
+            });
+            if (lane) {
+                const pipeline = await db.pipeline.findUnique({
+                    where: { id: lane.pipelineId },
+                });
+                if (pipeline) {
+                    await requireSubAccountAccess(pipeline.subAccountId);
+                }
+            }
+        }
         const updateTrans = tickets.map((ticket) =>
             db.ticket.update({
                 where: { id: ticket.id },
@@ -878,6 +1046,15 @@ export const updateTicketsOrder = async (tickets: Ticket[]) => {
 };
 
 export const deleteTicket = async (ticketId: string) => {
+    const ticket = await db.ticket.findUnique({ where: { id: ticketId } });
+    if (!ticket) throw new Error("Ticket not found");
+    const lane = await db.lane.findUnique({ where: { id: ticket.laneId } });
+    if (!lane) throw new Error("Lane not found");
+    const pipeline = await db.pipeline.findUnique({
+        where: { id: lane.pipelineId },
+    });
+    if (!pipeline) throw new Error("Pipeline not found");
+    await requireSubAccountAccess(pipeline.subAccountId);
     const response = await db.ticket.delete({
         where: {
             id: ticketId,
@@ -934,6 +1111,14 @@ export const searchContacts = async (searchTerms: string) => {
 };
 
 export const upsertTicket = async (ticket: Prisma.TicketUncheckedCreateInput, tags: Tag[]) => {
+    const lane = await db.lane.findUnique({ where: { id: ticket.laneId } });
+    if (!lane) throw new Error("Lane not found");
+    const pipeline = await db.pipeline.findUnique({
+        where: { id: lane.pipelineId },
+    });
+    if (!pipeline) throw new Error("Pipeline not found");
+    await requireSubAccountAccess(pipeline.subAccountId);
+
     let order: number;
     if (!ticket.order) {
         const tickets = await db.ticket.findMany({
@@ -965,6 +1150,7 @@ export const getDomainContent = async (subDomainName: string) => {
   const response = await db.funnel.findUnique({
     where: {
       subDomainName,
+      published: true,
     },
     include: { FunnelPages: true },
   })
@@ -973,6 +1159,7 @@ export const getDomainContent = async (subDomainName: string) => {
 
 
 export const upsertTag = async (subaccountId: string, tag: Prisma.TagUncheckedCreateInput) => {
+    await requireSubAccountAccess(subaccountId);
     const response = await db.tag.upsert({
         where: { id: tag.id || v4(), subAccountId: subaccountId },
         update: tag,
@@ -991,6 +1178,9 @@ export const getTagsForSubaccount = async (subaccountId: string) => {
 };
 
 export const deleteTag = async (tagId: string) => {
+    const tag = await db.tag.findUnique({ where: { id: tagId } });
+    if (!tag) throw new Error("Tag not found");
+    await requireSubAccountAccess(tag.subAccountId);
     const response = await db.tag.delete({ where: { id: tagId } });
     return response;
 };
@@ -1020,6 +1210,11 @@ export const getContact = async (subaccountId: string) => {
 };
 
 export const upsertContact = async (contact: Prisma.ContactUncheckedCreateInput) => {
+    const subAccount = await db.subAccount.findUnique({
+        where: { id: contact.subAccountId },
+        select: { id: true },
+    });
+    if (!subAccount) throw new Error("Subaccount not found");
     const response = await db.contact.upsert({
         where: { id: contact.id || v4() },
         update: contact,
@@ -1059,6 +1254,7 @@ export const getFunnel = async (funnelId: string) => {
 
 export const upsertFunnelPage = async (subaccountId: string, funnelPage: UpsertFunnelPage, funnelId: string) => {
     if (!subaccountId || !funnelId) return;
+    await requireSubAccountAccess(subaccountId);
 
     const response = await db.funnelPage.upsert({
         where: {
@@ -1091,6 +1287,12 @@ export const upsertFunnelPage = async (subaccountId: string, funnelPage: UpsertF
 };
 
 export const deleteFunnelsPage = async (funnelPageId: string) => {
+    const page = await db.funnelPage.findUnique({
+        where: { id: funnelPageId },
+        include: { Funnel: true },
+    });
+    if (!page || !page.Funnel) throw new Error("Funnel page not found");
+    await requireSubAccountAccess(page.Funnel.subAccountId);
     const response = await db.funnelPage.delete({
         where: {
             id: funnelPageId,
@@ -1101,6 +1303,11 @@ export const deleteFunnelsPage = async (funnelPageId: string) => {
 };
 
 export const updateFunnelProducts = async (products: string, funnelId: string) => {
+    const funnel = await db.funnel.findUnique({
+        where: { id: funnelId },
+    });
+    if (!funnel) throw new Error("Funnel not found");
+    await requireSubAccountAccess(funnel.subAccountId);
     const data = await db.funnel.update({
         where: { id: funnelId },
         data: { liveProducts: products },

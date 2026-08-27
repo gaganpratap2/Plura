@@ -1,15 +1,41 @@
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { stripe } from "@/lib/stripe";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 export async function POST(req: Request) {
+    const { userId } = await auth();
+    if (!userId) {
+        return new NextResponse("Unauthorized", { status: 401 });
+    }
+
     const { customerId, priceId } = await req.json();
     if (!customerId || !priceId) {
         return new NextResponse("Customer Id or price id is missing", {
             status: 400,
         });
+    }
+
+    const agency = await db.agency.findFirst({
+        where: { customerId },
+        select: {
+            id: true,
+        },
+    });
+
+    const authUser = await db.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, role: true, agencyId: true },
+    });
+    if (
+        !agency ||
+        !authUser ||
+        authUser.role !== "AGENCY_OWNER" ||
+        authUser.agencyId !== agency.id
+    ) {
+        return new NextResponse("Unauthorized", { status: 401 });
     }
 
     const subscriptionExits = await db.agency.findFirst({

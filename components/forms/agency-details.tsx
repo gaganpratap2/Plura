@@ -109,7 +109,7 @@ const AgencyDetails = ({ data }: Props) => {
               country: values.country,
               line1: values.address,
               postal_code: values.zipCode,
-              state: values.zipCode,
+              state: values.state,
             },
             name: values.name,
           },
@@ -118,7 +118,7 @@ const AgencyDetails = ({ data }: Props) => {
             country: values.country,
             line1: values.address,
             postal_code: values.zipCode,
-            state: values.zipCode,
+            state: values.state,
           },
         }
 
@@ -132,9 +132,10 @@ const AgencyDetails = ({ data }: Props) => {
         const customerData: { customerId: string } =
           await customerResponse.json()
         custId = customerData.customerId
+
+        await initUser({ role: 'AGENCY_OWNER' })
       }
 
-      newUserData = await initUser({ role: 'AGENCY_OWNER' })
       if (!data?.customerId && !custId) return
 
       const response = await upsertAgency({

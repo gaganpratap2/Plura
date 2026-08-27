@@ -1,4 +1,6 @@
-﻿import { SignIn } from "@clerk/nextjs";
+﻿"use client";
+
+import { SignIn } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import Image from "next/image";
 import Link from "next/link";
