@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { subscriptionCreated } from "@/lib/stripe/stripe-actions";
 
-const stripWebhookEvents = new Set(["product.create", "product.updated", "price.created", "price.updated", "checkout.session.completed", "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"]);
+const stripeWebhookEvents = new Set(["product.create", "product.updated", "price.created", "price.updated", "checkout.session.completed", "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"]);
 
 export async function POST(req: Request) {
     let stripeEvent: Stripe.Event;
@@ -34,22 +34,23 @@ export async function POST(req: Request) {
     }
 
     try {
-        if (stripWebhookEvents.has(stripeEvent.type)) {
+        if (stripeWebhookEvents.has(stripeEvent.type)) {
             const subscription = stripeEvent.data.object as Stripe.Subscription;
             if (!subscription.metadata.connectAccountPayments && !subscription.metadata.connectAccountSubscriptions) {
-                switch (stripeEvent.type) {
-                    case "customer.subscription.created":
-                    case "customer.subscription.updated": {
-                        if (subscription.status === "active") {
-                            await subscriptionCreated(subscription, subscription.customer as string);
-                        } else {
-                            console.log("SKIPPED AT CREATED FROM WEBHOOK 💳 because subscription status is not active", subscription);
-                            break;
-                        }
+                if (stripeEvent.type === "customer.subscription.created" || stripeEvent.type === "customer.subscription.updated") {
+                    if (subscription.status === "active") {
+                        await subscriptionCreated(subscription, subscription.customer as string);
                     }
-                    default:
-                        console.log("👉🏻 Unhandled relevant event!", stripeEvent.type);
+                    return NextResponse.json(
+                        {
+                            webhookActionReceived: true,
+                        },
+                        {
+                            status: 200,
+                        }
+                    );
                 }
+                console.log("👉🏻 Unhandled relevant event!", stripeEvent.type);
             } else {
                 console.log("SKIPPED FROM WEBHOOK 💳 because subscription was from a connected account not for the application", subscription);
             }

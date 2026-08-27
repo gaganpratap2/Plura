@@ -1,12 +1,17 @@
 import { Stripe, loadStripe } from "@stripe/stripe-js";
 
-let stripePromise: Promise<Stripe | null>;
+const stripePromises = new Map<string, Promise<Stripe | null>>();
+
 export const getStripe = (connectedAccountId?: string) => {
-    if (!stripePromise) {
-        stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "", {
-            stripeAccount: connectedAccountId,
-            locale: "en",
-        });
+    const key = connectedAccountId ?? "default";
+    if (!stripePromises.has(key)) {
+        stripePromises.set(
+            key,
+            loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "", {
+                stripeAccount: connectedAccountId,
+                locale: "en",
+            })
+        );
     }
-    return stripePromise;
+    return stripePromises.get(key)!;
 };

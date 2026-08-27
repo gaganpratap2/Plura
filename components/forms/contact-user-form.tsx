@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -66,7 +66,7 @@ const ContactUserForm: React.FC<ContactUserFormProps> = ({ subaccountId }) => {
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could not save funnel details",
             });
         }

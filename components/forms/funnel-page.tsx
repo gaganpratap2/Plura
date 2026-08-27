@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -76,7 +76,7 @@ const CreateFunnelPage: React.FC<CreateFunnelPageProps> = ({ defaultData, funnel
             console.log(e);
             toast({
                 variant: "destructive",
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could Save Funnel Page Details",
             });
         }

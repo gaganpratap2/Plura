@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getSubAccountTeamMembers, saveActivityLogsNotification, searchContacts, upsertTicket } from "@/lib/queries";
@@ -119,7 +119,7 @@ const TicketForm = ({ getNewTicket, laneId, subaccountId }: Props) => {
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could not save pipeline details",
             });
         }

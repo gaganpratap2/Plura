@@ -19,9 +19,12 @@ export async function POST(req: Request) {
         return new NextResponse("Stripe Account Id or price id is missing", {
             status: 400,
         });
-    if (!process.env.NEXT_PUBLIC_PLATFORM_SUBSCRIPTION_PERCENT || !process.env.NEXT_PUBLIC_PLATFORM_ONETIME_FEE || !process.env.NEXT_PUBLIC_PLATFORM_AGENY_PERCENT) {
-        console.log("VALUES DONT EXITS");
-        return NextResponse.json({ error: "Fees do not exist" });
+    if (!process.env.NEXT_PUBLIC_PLATFORM_SUBSCRIPTION_PERCENT || !process.env.NEXT_PUBLIC_PLATFORM_ONETIME_FEE || !process.env.NEXT_PUBLIC_PLATFORM_AGENCY_PERCENT) {
+        console.log("VALUES DO NOT EXIST");
+        return NextResponse.json(
+            { error: "Fees do not exist" },
+            { status: 400 }
+        );
     }
 
     // Not needed unless we want to send payments to this account.
@@ -80,8 +83,10 @@ export async function POST(req: Request) {
         );
     } catch (error) {
         console.log("🔴 Error", error);
-        //@ts-ignore
-        return NextResponse.json({ error: error.message });
+        return NextResponse.json(
+            { error: error instanceof Error ? error.message : "Checkout session creation failed" },
+            { status: 500 }
+        );
     }
 }
 

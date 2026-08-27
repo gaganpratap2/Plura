@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { CreateFunnelFormSchema } from "@/lib/schemas";
 import { useModal } from "@/providers/modal-provider";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -68,7 +68,7 @@ const FunnelForm: React.FC<CreateFunnelProps> = ({ defaultData, subAccountId }) 
         } else {
             toast({
                 variant: "destructive",
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could not save funnel details",
             });
         }

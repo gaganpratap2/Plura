@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { saveActivityLogsNotification, sendInvitation } from "@/lib/queries";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
@@ -52,7 +52,7 @@ const SendInvitation: React.FC<SendInvitationProps> = ({ agencyId }) => {
             console.log(error);
             toast({
                 variant: "destructive",
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could not send invitation",
             });
         }

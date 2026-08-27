@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { Agency } from '@prisma/client'
 import { useForm } from 'react-hook-form'
 import React, { useEffect, useState } from 'react'
@@ -400,7 +400,7 @@ const AgencyDetails = ({ data }: Props) => {
                 <div className="flex flex-col gap-2">
                   <FormLabel>Create A Goal</FormLabel>
                   <FormDescription>
-                    ✨ Create a goal for your agency. As your business grows
+                    âœ¨ Create a goal for your agency. As your business grows
                     your goals grow too so dont forget to set the bar higher!
                   </FormDescription>
                   <NumberInput
@@ -676,7 +676,7 @@ export default AgencyDetails
 //             console.log(error);
 //             toast({
 //                 variant: "destructive",
-//                 title: "Oppse!",
+//                 title: "Oops!",
 //                 description: "Could not delete your agency ",
 //             });
 //         }
@@ -844,7 +844,7 @@ export default AgencyDetails
 //                             {data?.id && (
 //                                 <div className="flex flex-col gap-2">
 //                                     <FormLabel>Create A Goat</FormLabel>
-//                                     <FormDescription>✨ Create a goal for your agency. As your business grows your goals grow too so dont forget to set the bar higher!</FormDescription>
+//                                     <FormDescription>âœ¨ Create a goal for your agency. As your business grows your goals grow too so dont forget to set the bar higher!</FormDescription>
 //                                     <NumberInput
 //                                         defaultValue={data?.goal}
 //                                         onValueChange={async (val) => {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useToast } from "@/components/ui/use-toast";
 import { changeUserPermission, getAuthUserDetails, getUserPermissions, saveActivityLogsNotification, updateUser } from "@/lib/queries";
 import { AuthUserWithAgencySigebarOptionsSubAccounts, UserWithPermissionsAndSubAccounts } from "@/lib/types";
@@ -122,7 +122,7 @@ const UserDetails = ({ id, type, userData, subAccounts }: Props) => {
         } else {
             toast({
                 variant: "destructive",
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could not update permissions",
             });
         }
@@ -152,7 +152,7 @@ const UserDetails = ({ id, type, userData, subAccounts }: Props) => {
             } else {
                 toast({
                     variant: "destructive",
-                    title: "Oppse!",
+                    title: "Oops!",
                     description: "Could not update user information",
                 });
             }
@@ -438,7 +438,7 @@ export default UserDetails;
 //         } else {
 //             toast({
 //                 variant: "destructive",
-//                 title: "Oppse!",
+//                 title: "Oops!",
 //                 description: "Could not update permissions",
 //             });
 //         }
@@ -468,7 +468,7 @@ export default UserDetails;
 //             } else {
 //                 toast({
 //                     variant: "destructive",
-//                     title: "Oppse!",
+//                     title: "Oops!",
 //                     description: "Could not update user information",
 //                 });
 //             }

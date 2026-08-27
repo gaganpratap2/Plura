@@ -42,7 +42,7 @@ const FeaturesPage = () => {
             </div>
 
             <Link
-                href="/pricing"
+                href="/site"
                 className="mt-14 bg-primary text-primary-foreground px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity"
             >
                 See pricing plans

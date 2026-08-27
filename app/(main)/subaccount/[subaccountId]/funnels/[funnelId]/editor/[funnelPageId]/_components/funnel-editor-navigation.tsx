@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -54,7 +54,7 @@ const FunnelEditorNavigation: React.FC<Props> = ({ funnelId, funnelPageDetails, 
             router.refresh();
         } else {
             toast({
-                title: "Oppse",
+                title: "Oops",
                 description: "Funnel page title cannot be empty",
             });
             event.target.value = funnelPageDetails.name;
@@ -95,7 +95,7 @@ const FunnelEditorNavigation: React.FC<Props> = ({ funnelId, funnelPageDetails, 
             });
         } catch (error) {
             toast({
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could not save editor",
             });
         }

@@ -77,5 +77,11 @@ export async function POST(req: Request) {
                 clientSecret,
             });
         }
-    } catch (error) {}
+    } catch (error) {
+        console.log("🔴 Error creating/updating subscription", error);
+        return new NextResponse(
+            "Error creating or updating subscription",
+            { status: 500 }
+        );
+    }
 }

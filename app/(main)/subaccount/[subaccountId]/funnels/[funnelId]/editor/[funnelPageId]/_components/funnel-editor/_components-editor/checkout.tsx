@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Loading from "@/components/global/loading";
 import { toast } from "@/components/ui/use-toast";
 import { EditorBtns } from "@/lib/constant";
@@ -74,7 +74,7 @@ const Checkout = ({ element }: Props) => {
                         open: true,
                         className: "z-[100000]",
                         variant: "destructive",
-                        title: "Oppse!",
+                        title: "Oops!",
                         //@ts-ignore
                         description: error.message,
                     });

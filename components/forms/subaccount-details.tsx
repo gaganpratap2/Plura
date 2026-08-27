@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Agency, SubAccount } from "@prisma/client";
 import React, { useEffect } from "react";
@@ -100,7 +100,7 @@ const SubAccountDetails: React.FC<SubAccountDetailsProps> = ({ details, agencyDe
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could not save sub account details.",
             });
         }

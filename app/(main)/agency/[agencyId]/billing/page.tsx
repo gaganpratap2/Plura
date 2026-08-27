@@ -44,7 +44,7 @@ const Page = async ({ params }: Props) => {
         ...charges.data.map((charge) => ({
             description: charge.description,
             id: charge.id,
-            date: `${new Date(charge.created * 1000).toLocaleTimeString()} ${new Date(charge.created).toLocaleTimeString()}`,
+            date: new Date(charge.created * 1000).toLocaleString(),
             status: "Paid",
             amount: `$${charge.amount / 100}`,
         })),
@@ -60,7 +60,7 @@ const Page = async ({ params }: Props) => {
                     prices={prices.data}
                     customerId={agencySubscription?.customerId || ""}
                     amt={agencySubscription?.Subscription?.active === true ? currentPlanDetails?.price || "$0" : "$0"}
-                    buttonCta={agencySubscription?.Subscription?.active === true ? "Change Plan" : "Get  Started"}
+                    buttonCta={agencySubscription?.Subscription?.active === true ? "Change Plan" : "Get Started"}
                     highlightDescription="Want to modify your plan? You can do this here. If you have
                     further question contact support@plura-app.com"
                     highlightTitle="Plan Options"
@@ -88,7 +88,7 @@ const Page = async ({ params }: Props) => {
                         features={[]}
                         title={"24/7 priority support"}
                         highlightTitle="Get support now!"
-                        highlightDescription="Get priority support and skip the long long with the click of a button."
+                        highlightDescription="Get priority support and skip the long wait with the click of a button."
                     />
                 ))}
             </div>

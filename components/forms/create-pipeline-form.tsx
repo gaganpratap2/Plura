@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { saveActivityLogsNotification, upsertPipeline } from "@/lib/queries";
 import { useModal } from "@/providers/modal-provider";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,7 +71,7 @@ const CreatePipelineForm: React.FC<CreatePipelineFormProps> = ({ defaultData, su
             console.log(err);
             toast({
                 variant: "destructive",
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could not save pipeline details",
             });
         }

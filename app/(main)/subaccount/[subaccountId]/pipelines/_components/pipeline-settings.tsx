@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import CreatePipelineForm from "@/components/forms/create-pipeline-form";
 import { Pipeline } from "@prisma/client";
 import { useRouter } from "next/navigation";
@@ -43,7 +43,7 @@ const PipelineSettings = ({ pipelineId, subaccountId, pipelines }: Props) => {
                                     } catch (error) {
                                         toast({
                                             variant: "destructive",
-                                            title: "Oppse!",
+                                            title: "Oops!",
                                             description: "Could Delete Pipeline",
                                         });
                                     }

@@ -5,11 +5,10 @@ const nextConfig = {
           'uploadthing.com',
           'utfs.io',
           'img.clerk.com',
-          'subdomain',
           'files.stripe.com',
         ],
       },
-      reactStrictMode: false,
+      reactStrictMode: true,
 };
 
 export default nextConfig;

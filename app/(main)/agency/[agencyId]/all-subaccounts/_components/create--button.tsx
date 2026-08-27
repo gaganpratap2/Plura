@@ -36,7 +36,7 @@ const CreateSubAccountButton = ({ user, id, className }: Props) => {
             className={twMerge("w-full flex gap-4", className)}
             onClick={() => {
                 setOpen(
-                    <CustomModal title="Create a Subaccount" subheading="You can switch bettween">
+                    <CustomModal title="Create a Subaccount" subheading="You can switch between">
                         <SubAccountDetails agencyDetails={agencyDetails} userId={user.id} userName={user.name} />
                     </CustomModal>
                 );

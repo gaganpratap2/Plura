@@ -1,4 +1,4 @@
-import TicketForm from "@/components/forms/ticket-form";
+﻿import TicketForm from "@/components/forms/ticket-form";
 import CustomModal from "@/components/global/custom-modal";
 import TagComponent from "@/components/global/tag";
 import LinkIcon from "@/components/icons/link";
@@ -61,7 +61,7 @@ const PipelineTicket = ({ setAllTickets, ticket, subAccountId, index }: Props) =
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could not delete the ticket.",
             });
             console.log(error);

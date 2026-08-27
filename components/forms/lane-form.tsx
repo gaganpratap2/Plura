@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useEffect } from "react";
 import { z } from "zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -74,7 +74,7 @@ const LaneForm: React.FC<CreateLaneFormProps> = ({ defaultData, pipelineId }) =>
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: "Oppse!",
+                title: "Oops!",
                 description: "Could not save pipeline details",
             });
         }
