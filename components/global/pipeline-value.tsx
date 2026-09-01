@@ -16,24 +16,28 @@ import {
 
 type Props = {
   subaccountId: string
+  initialPipelines?: Prisma.PromiseReturnType<typeof getPipelines>
 }
 
-const PipelineValue = ({ subaccountId }: Props) => {
+const PipelineValue = ({ subaccountId, initialPipelines }: Props) => {
   const [pipelines, setPipelines] = useState<
     Prisma.PromiseReturnType<typeof getPipelines>
-  >([])
+  >(initialPipelines ?? [])
 
-  const [selectedPipelineId, setselectedPipelineId] = useState('')
+  const [selectedPipelineId, setselectedPipelineId] = useState(
+    initialPipelines?.[0]?.id ?? ''
+  )
   const [pipelineClosedValue, setPipelineClosedValue] = useState(0)
 
   useEffect(() => {
+    if (initialPipelines?.length) return
     const fetchData = async () => {
       const res = await getPipelines(subaccountId)
       setPipelines(res)
       setselectedPipelineId(res[0]?.id)
     }
     fetchData()
-  }, [subaccountId])
+  }, [subaccountId, initialPipelines])
 
   const totalPipelineValue = useMemo(() => {
     if (pipelines.length) {

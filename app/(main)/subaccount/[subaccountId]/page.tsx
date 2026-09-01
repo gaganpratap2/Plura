@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { db } from '@/lib/db'
+import { getPipelines } from '@/lib/queries'
 import { stripe } from '@/lib/stripe'
 import { AreaChart, BadgeDelta } from '@tremor/react'
 import { ClipboardIcon, Contact2, DollarSign, ShoppingCart } from 'lucide-react'
@@ -105,14 +106,17 @@ const SubaccountPageId = async ({ params, searchParams }: Props) => {
     ).toFixed(2)
   }
 
-  const funnels = await db.funnel.findMany({
-    where: {
-      subAccountId: params.subaccountId,
-    },
-    include: {
-      FunnelPages: true,
-    },
-  })
+  const [funnels, pipelines] = await Promise.all([
+    db.funnel.findMany({
+      where: {
+        subAccountId: params.subaccountId,
+      },
+      include: {
+        FunnelPages: true,
+      },
+    }),
+    getPipelines(params.subaccountId),
+  ])
 
   const funnelPerformanceMetrics = funnels.map((funnel) => ({
     ...funnel,
@@ -183,7 +187,10 @@ const SubaccountPageId = async ({ params, searchParams }: Props) => {
               </CardContent>
               <Contact2 className="absolute right-4 top-4 text-muted-foreground" />
             </Card>
-            <PipelineValue subaccountId={params.subaccountId} />
+            <PipelineValue
+              subaccountId={params.subaccountId}
+              initialPipelines={pipelines}
+            />
 
             <Card className="xl:w-fit">
               <CardHeader>

@@ -591,6 +591,7 @@ export const getNotificationAndUser = async (agencyId: string) => {
             orderBy: {
                 createdAt: "desc",
             },
+            take: 20,
         });
         return response;
     } catch (error) {

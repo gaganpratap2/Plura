@@ -14,19 +14,22 @@ type Props = {
 } & ChildrenProps;
 
 const Layout = async ({ children, params }: Props) => {
-    const agencyId = await verifyAndAcceptInvitation();
+    const [agencyId, user] = await Promise.all([
+        verifyAndAcceptInvitation(),
+        currentUser(),
+    ]);
     if (!agencyId) return <Unauthorized />;
 
-    const user = await currentUser();
     if (!user) redirect("/");
 
     let notifications: any = [];
+    let userDetails;
 
     if (!user.privateMetadata.role) {
         return <Unauthorized />;
     } else {
-        const allPermissions = await getAuthUserDetails();
-        const hasPermission = allPermissions?.Permissions.find((p) => p.access && p.subAccountId === params.subaccountId);
+        userDetails = await getAuthUserDetails();
+        const hasPermission = userDetails?.Permissions.find((p) => p.access && p.subAccountId === params.subaccountId);
 
         if (!hasPermission) {
             return <Unauthorized />;
@@ -44,7 +47,7 @@ const Layout = async ({ children, params }: Props) => {
 
     return (
         <div className="h-screen overflow-hidden">
-            <Sidebar id={params.subaccountId} type="subaccount" />
+            <Sidebar id={params.subaccountId} type="subaccount" userDetails={userDetails} />
             <div className="md:pl-[300px]">
                 <InfoBar notifications={notifications} role={user.privateMetadata.role as string} subAccountId={params.subaccountId as string} />
                 <div className="relative">{children}</div>

@@ -13,19 +13,19 @@ type Props = {
 };
 
 const Page = async ({ params }: Props) => {
-    const pipelineDetails = await getPipelineDetails(params.pipelineId);
+    const [pipelineDetails, pipelines, lanes] = await Promise.all([
+        getPipelineDetails(params.pipelineId),
+        db.pipeline.findMany({
+            where: {
+                subAccountId: params.subaccountId,
+            },
+        }),
+        getLanesWithTicketAndTags(params.pipelineId),
+    ]);
 
     if (!pipelineDetails) {
         return redirect(`/subaccount/${params.subaccountId}/pipelines`);
     }
-
-    const pipelines = await db.pipeline.findMany({
-        where: {
-            subAccountId: params.subaccountId,
-        },
-    });
-
-    const lanes = (await getLanesWithTicketAndTags(params.pipelineId)) as LaneDetails[];
 
     return (
         <Tabs defaultValue="view" className="w-full h-full relative">

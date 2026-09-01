@@ -1,14 +1,16 @@
 import { getAuthUserDetails } from "@/lib/queries";
+import { Prisma } from "@prisma/client";
 import React from "react";
 import MenuOptions from "./menu-option";
 
 type Props = {
     id: string;
     type: "agency" | "subaccount";
+    userDetails?: Prisma.PromiseReturnType<typeof getAuthUserDetails>;
 };
 
-const Sidebar = async ({ id, type }: Props) => {
-    const user = await getAuthUserDetails();
+const Sidebar = async ({ id, type, userDetails }: Props) => {
+    const user = userDetails ?? (await getAuthUserDetails());
 
     if (!user) return;
 
