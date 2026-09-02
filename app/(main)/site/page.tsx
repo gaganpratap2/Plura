@@ -43,6 +43,21 @@ const Page = () => {
                     If you&apos;re not ready to commit, you can get started for free.
                 </p>
 
+                <div className="flex justify-center gap-4 mt-6">
+                    <Link
+                        href="/features"
+                        className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                    >
+                        Explore all features →
+                    </Link>
+                    <Link
+                        href="/documentation"
+                        className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                    >
+                        Read documentation →
+                    </Link>
+                </div>
+
                 <div className="flex justify-center gap-6 flex-wrap mt-6 pb-20">
                     {pricingCards.map((card) => {
                         const isFeatured = card.title === "Unlimited Saas";
